@@ -5,22 +5,10 @@ from selenium.common.exceptions import WebDriverException
 import time
 import os
 import sys
-
-#the file in which contains a list of emails and their passwords for logins
-ACCOUNT_FILE = 'coupons.txt' 
-
-#local path to the webdriver to run selenium
-CHROMEPATH = "/home/metulburr/chromedriver" #chrome driver
-PHANTOMPATH = '/home/metulburr/phantomjs' #headless driver
-
-MULT = 1 #delay multiplier in seconds
-RED='\033[0;31m'
-GREEN='\033[1;32m'
-NOCOLOR='\033[0m'
-HEADLESS = False #do in background
+import argparse
 
 HELP = '''
-python2.x: this program loads a file in the same directory named {}
+python2.x: this program loads a file in the same directory
 in which loads an unlimited list of emails and passwords separated each account by a new line
 and the email and password seperated by | character
 example format is as the following:
@@ -28,7 +16,42 @@ email1@gmail.com|my_password
 email2@yahoo.com|my_password
 email3@yandex.com|my_password
 #email4@yandex.com|my_password this line is ignored starting with #
-email5@yandex.com|my_password'''.format(ACCOUNT_FILE)
+email5@yandex.com|my_password'''
+
+parser = argparse.ArgumentParser(description=HELP)
+parser.add_argument('-b','--headless', action='store_true', default=False,
+    help='Run in headless mode (in the background)')
+parser.add_argument('-m','--multiply', type=int, default=1, 
+    help='time delay multiplier in seconds for loading between web pages, default is 1, to double is 2, etc.')
+parser.add_argument('-i','--input', default='coupons.txt',type=str,
+    help='use this input file of accounts instead of the default coupons.txt')
+parser.add_argument('-c','--chrome', default="/home/metulburr/chromedriver",type=str,
+    help='custom chrome webdriver path')
+parser.add_argument('-p','--phantom', default="/home/metulburr/phantomjs",type=str,
+    help='custom phantomjs webdriver path for headless')
+parser.add_argument('-s','--skip', action='store_true', default=False,
+    help='skip over accounts with no coupons left to clip')
+parser.add_argument('-f','--find', nargs=1,
+    help='skip over accounts with no coupons left to clip')
+args = vars(parser.parse_args())
+
+#the file in which contains a list of emails and their passwords for logins
+ACCOUNT_FILE = args['input']
+
+#local path to the webdriver to run selenium
+CHROMEPATH = args['chrome'] #chrome driver
+PHANTOMPATH = args['phantom'] #headless driver
+
+MULT = args['multiply'] #delay multiplier in seconds
+RED='\033[0;31m'
+GREEN='\033[1;32m'
+NOCOLOR='\033[0m'
+HEADLESS = args['headless'] #do in background
+SKIP = args['skip']
+    
+def print_color(msg, color):
+    '''print in color in terminal'''
+    print('{}{}{}'.format(color, msg, NOCOLOR))
 
 def setup():
     '''
@@ -107,16 +130,29 @@ def clip_all_btns(browser, number_of_coupons, username):
     browser.execute_script("document.getElementsByClassName('close-btn')[0].click()")
     for i in range(number_of_coupons): #now we are verified, clip all coupons
         browser.execute_script("document.getElementsByClassName('badge')[{}].click()".format(i))
-    print('{}clipped all coupons on {}{}'.format(GREEN, username, NOCOLOR))
+    print_color('clipped all coupons on {}'.format(username), GREEN)
 
 def load_file(filename):
     try:
         with open(filename, 'r') as f:
             return f.readlines()
     except IOError:
-        print('\n{}Error: Failed loading {}{}'.format(RED, filename, NOCOLOR))
+        print_color('\nError: Failed loading {}'.format(filename),RED)
         print(HELP)
         sys.exit()
+        
+def print_coupon_info(browser):
+    '''get coupons clipped/unclipped amount'''
+    browser.get('https://dg.coupons.com/dashboard/')
+    elements = browser.find_elements_by_xpath('.//span[@class="number"]')
+    try:
+        print('coupons clipped: {}'.format(elements[0].text))
+        print('coupons available: {}'.format(elements[1].text))
+        if SKIP:
+            if not int(elements[1].text):
+                return True
+    except IndexError:
+        pass
 
 def execute():
     print('logging into {}'.format(username))
@@ -128,14 +164,25 @@ def execute():
         login(browser, username,password)
 
         time.sleep(3 * MULT) 
+        #goes to dashboard page after login https://dg.coupons.com/dashboard/
+        no_coupons_available = print_coupon_info(browser)
+        if SKIP:
+            if no_coupons_available:
+                print_color('All coupons already clipped', GREEN)
+                browser.quit()
+                return
+        #time.sleep(3000)
         browser.get('https://dg.coupons.com/coupons/')
         time.sleep(3 * MULT)
+        
+        
 
         count = make_all_btns_visable(browser)
         clip_all_btns(browser, count, username)
+        print_coupon_info(browser)
         browser.quit()
     except WebDriverException: #clipping failed due to not logging in (this site appears to log in even if not)
-        print('{}Failed login to {}{}'.format(RED, username, NOCOLOR))
+        print_color('Failed to login to {}'.format(username), RED)
 
 
 if __name__ == '__main__':
@@ -144,7 +191,10 @@ if __name__ == '__main__':
         for line in lines:
             if not line.startswith('#'): #ignore commented out lines
                 try: 
-                    username, password = line.split('|')
+                    splits = line.split('|')
+                    username = splits[0]
+                    password = splits[1]
+                    #phone = splits[2]
                 except ValueError: #bypass blank lines
                     continue
                 password = password.rstrip()
@@ -153,5 +203,8 @@ if __name__ == '__main__':
         print()
         sys.exit()
     print('Done!')
+
+
+
 
 
