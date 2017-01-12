@@ -31,8 +31,8 @@ parser.add_argument('-p','--phantom', default="/home/metulburr/phantomjs",type=s
     help='custom phantomjs webdriver path for headless')
 parser.add_argument('-s','--skip', action='store_true', default=False,
     help='skip over accounts with no coupons left to clip')
-parser.add_argument('-f','--find', nargs=1,
-    help='skip over accounts with no coupons left to clip')
+parser.add_argument('-f','--find', nargs='*', default=None,
+    help='search argument as')
 args = vars(parser.parse_args())
 
 #the file in which contains a list of emails and their passwords for logins
@@ -48,10 +48,12 @@ GREEN='\033[1;32m'
 NOCOLOR='\033[0m'
 HEADLESS = args['headless'] #do in background
 SKIP = args['skip']
+SEARCH = args['find']
     
 def print_color(msg, color):
     '''print in color in terminal'''
-    print('{}{}{}'.format(color, msg, NOCOLOR))
+    s = '{}{}{}'.format(color, msg, NOCOLOR)
+    print(s)
 
 def setup():
     '''
@@ -155,7 +157,10 @@ def print_coupon_info(browser):
         pass
 
 def execute():
-    print('logging into {}'.format(username))
+    if SEARCH:
+        print_color('logging into {}'.format(username), GREEN)
+    else:
+        print('logging into {}'.format(username))
     try:
         if HEADLESS:
             browser = setup_headless()
@@ -164,23 +169,35 @@ def execute():
         login(browser, username,password)
 
         time.sleep(3 * MULT) 
-        #goes to dashboard page after login https://dg.coupons.com/dashboard/
-        no_coupons_available = print_coupon_info(browser)
-        if SKIP:
-            if no_coupons_available:
-                print_color('All coupons already clipped', GREEN)
-                browser.quit()
-                return
-        #time.sleep(3000)
-        browser.get('https://dg.coupons.com/coupons/')
-        time.sleep(3 * MULT)
-        
-        
+        if SEARCH: #only -f arg
+            browser.get('https://dg.coupons.com/myCoupons/')
+            time.sleep(1 * MULT) 
+            
+            
+            coupons = browser.find_elements_by_xpath('.//div[@class="pod ci-grid activated desktop "]')
+            for coupon in coupons:
+                for search_str in SEARCH:
+                    if search_str.lower() in coupon.text.lower():
+                        print(coupon.text)
+                        print('-'*25)
+        else:
+            #goes to dashboard page after login https://dg.coupons.com/dashboard/
+            no_coupons_available = print_coupon_info(browser)
+            if SKIP:
+                if no_coupons_available:
+                    print_color('All coupons already clipped', GREEN)
+                    browser.quit()
+                    return
+            #time.sleep(3000)
+            browser.get('https://dg.coupons.com/coupons/')
+            time.sleep(3 * MULT)
+            
+            
 
-        count = make_all_btns_visable(browser)
-        clip_all_btns(browser, count, username)
-        print_coupon_info(browser)
-        browser.quit()
+            count = make_all_btns_visable(browser)
+            clip_all_btns(browser, count, username)
+            print_coupon_info(browser)
+            browser.quit()
     except WebDriverException: #clipping failed due to not logging in (this site appears to log in even if not)
         print_color('Failed to login to {}'.format(username), RED)
 
