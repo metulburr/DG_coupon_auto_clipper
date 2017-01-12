@@ -16,10 +16,13 @@ https://chromedriver.storage.googleapis.com/index.html
 PhantomJS: This is a headless version doing it in the background instead, the driver is at
 http://phantomjs.org/download.html
 
+~~
 4-A)The source code needs to be changed to accomodate changes:
 Change the path to the path on your computer where you chrome webdriver resides
 https://github.com/metulburr/DG_coupon_auto_clipper/blob/master/coupons.py#L13
 same with phantomjs below that to the proper path to that webdriver if using headless
+~~
+Now just give the argument -c {PATH} for chrome and -p {PATH} for phantom
 
 4-B)The list of accounts needs to be changed to your true DG accounts|passwords shown in the format of this example in that name. The file needs to reside in the same directory as the source code, with that filename. 
 https://github.com/metulburr/DG_coupon_auto_clipper/blob/master/coupons.txt
