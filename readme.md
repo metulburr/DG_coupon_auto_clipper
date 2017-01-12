@@ -46,6 +46,40 @@ clipped all coupons on BLEEP3@BLEEP.com
 
 ```
 
+###arguments
+```
+metulburr@ubuntu:~$ python coupons.py -h
+usage: coupons.py [-h] [-b] [-m MULTIPLY] [-i INPUT] [-c CHROME] [-p PHANTOM]
+                  [-s] [-f [FIND [FIND ...]]]
+
+python2.x: this program loads a file in the same directory in which loads an
+unlimited list of emails and passwords separated each account by a new line
+and the email and password seperated by | character example format is as the
+following: email1@gmail.com|my_password email2@yahoo.com|my_password
+email3@yandex.com|my_password #email4@yandex.com|my_password this line is
+ignored starting with # email5@yandex.com|my_password
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -b, --headless        Run in headless mode (in the background)
+  -m MULTIPLY, --multiply MULTIPLY
+                        time delay multiplier in seconds for loading between
+                        web pages, default is 1, to double is 2, etc.
+  -i INPUT, --input INPUT
+                        use this input file of accounts instead of the default
+                        coupons.txt
+  -c CHROME, --chrome CHROME
+                        custom chrome webdriver path
+  -p PHANTOM, --phantom PHANTOM
+                        custom phantomjs webdriver path for headless
+  -s, --skip            skip over accounts with no coupons left to clip. This
+                        is fast but can result in breakage
+  -f [FIND [FIND ...]], --find [FIND [FIND ...]]
+                        search for coupon(s) if used or clipped. FIND can be
+                        any number of keywords to make hits
+
+```
+
 ###base requirements
 python2.x
 selenium
