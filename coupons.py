@@ -21,8 +21,8 @@ email5@yandex.com|my_password'''
 parser = argparse.ArgumentParser(description=HELP)
 parser.add_argument('-b','--headless', action='store_true', default=False,
     help='Run in headless mode (in the background)')
-parser.add_argument('-m','--multiply', type=int, default=1, 
-    help='time delay multiplier in seconds for loading between web pages, default is 1, to double is 2, etc.')
+parser.add_argument('-m','--multiply', type=float, default=1, 
+    help='time delay multiplier in seconds for loading between web pages, default is 1, to double is 2, .25 is a quarter of the speed, etc.')
 parser.add_argument('-i','--input', default='coupons.txt',type=str,
     help='use this input file of accounts instead of the default coupons.txt')
 parser.add_argument('-c','--chrome', default="/home/metulburr/chromedriver",type=str,
@@ -30,9 +30,9 @@ parser.add_argument('-c','--chrome', default="/home/metulburr/chromedriver",type
 parser.add_argument('-p','--phantom', default="/home/metulburr/phantomjs",type=str,
     help='custom phantomjs webdriver path for headless')
 parser.add_argument('-s','--skip', action='store_true', default=False,
-    help='skip over accounts with no coupons left to clip')
+    help='skip over accounts with no coupons left to clip. This is fast but can result in breakage')
 parser.add_argument('-f','--find', nargs='*', default=None,
-    help='search argument as')
+    help='search for coupon(s) if used or clipped. FIND can be any number of keywords to make hits')
 args = vars(parser.parse_args())
 
 #the file in which contains a list of emails and their passwords for logins
@@ -49,6 +49,7 @@ NOCOLOR='\033[0m'
 HEADLESS = args['headless'] #do in background
 SKIP = args['skip']
 SEARCH = args['find']
+SEP = '-'*25
     
 def print_color(msg, color):
     '''print in color in terminal'''
@@ -179,7 +180,7 @@ def execute():
                 for search_str in SEARCH:
                     if search_str.lower() in coupon.text.lower():
                         print(coupon.text)
-                        print('-'*25)
+                        print(SEP)
         else:
             #goes to dashboard page after login https://dg.coupons.com/dashboard/
             no_coupons_available = print_coupon_info(browser)
@@ -197,6 +198,7 @@ def execute():
             count = make_all_btns_visable(browser)
             clip_all_btns(browser, count, username)
             print_coupon_info(browser)
+            print(SEP)
             browser.quit()
     except WebDriverException: #clipping failed due to not logging in (this site appears to log in even if not)
         print_color('Failed to login to {}'.format(username), RED)
