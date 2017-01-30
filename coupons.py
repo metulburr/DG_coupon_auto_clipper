@@ -6,6 +6,8 @@ import time
 import os
 import sys
 import argparse
+import datetime
+START = datetime.datetime.now()
 
 HELP = '''
 python2.x: this program loads a file in the same directory
@@ -21,6 +23,8 @@ email5@yandex.com|my_password'''
 parser = argparse.ArgumentParser(description=HELP)
 parser.add_argument('-b','--headless', action='store_true', default=False,
     help='Run in headless mode (in the background)')
+parser.add_argument('-a','--available', action='store_true', default=False,
+    help='show available coupons not clipped, no clipping during process')
 parser.add_argument('-m','--multiply', type=float, default=1, 
     help='time delay multiplier in seconds for loading between web pages, default is 1, to double is 2, .25 is a quarter of the speed, etc.')
 parser.add_argument('-i','--input', default='coupons.txt',type=str,
@@ -50,6 +54,7 @@ HEADLESS = args['headless'] #do in background
 SKIP = args['skip']
 SEARCH = args['find']
 SEP = '-'*25
+AVAIL = args['available']
     
 def print_color(msg, color):
     '''print in color in terminal'''
@@ -170,7 +175,7 @@ def execute():
         login(browser, username,password)
 
         time.sleep(3 * MULT) 
-        if SEARCH: #only -f arg
+        if SEARCH: #only -f arg #no clipping coupons
             browser.get('https://dg.coupons.com/myCoupons/')
             time.sleep(1 * MULT) 
             
@@ -181,7 +186,15 @@ def execute():
                     if search_str.lower() in coupon.text.lower():
                         print(coupon.text)
                         print(SEP)
-        else:
+        elif AVAIL: #show available coupons #no clipping coupons
+            coupons = browser.find_elements_by_xpath('.//div[@class="pod ci-grid recommended desktop "]')
+            if coupons:
+                print('number of coupons available: {}'.format(len(coupons)))
+                print(SEP)
+            for coupon in coupons:
+                print(coupon.text)
+                print(SEP)
+        else: #clip all coupons
             #goes to dashboard page after login https://dg.coupons.com/dashboard/
             no_coupons_available = print_coupon_info(browser)
             if SKIP:
@@ -202,6 +215,13 @@ def execute():
             browser.quit()
     except WebDriverException: #clipping failed due to not logging in (this site appears to log in even if not)
         print_color('Failed to login to {}'.format(username), RED)
+        
+def get_time():
+    now = datetime.datetime.now()
+    elapsed_time = now - START
+    t = divmod(elapsed_time.total_seconds(), 60)
+    m,s = (int(t[0]), int(t[1]))
+    return 'Took {} minutes and {} seconds'.format(m,s)
 
 
 if __name__ == '__main__':
@@ -222,6 +242,7 @@ if __name__ == '__main__':
         print()
         sys.exit()
     print('Done!')
+    print(get_time())
 
 
 
