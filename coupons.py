@@ -1,5 +1,7 @@
 #!/usr/bin/python env
 
+#http://selenium-python.readthedocs.io/locating-elements.html
+
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 import time
@@ -25,8 +27,14 @@ parser.add_argument('-b','--headless', action='store_true', default=False,
     help='Run in headless mode (in the background)')
 parser.add_argument('-a','--available', action='store_true', default=False,
     help='show available coupons not clipped, no clipping during process')
+parser.add_argument('-u','--used', action='store_true', default=False,
+    help='show used coupons')
+parser.add_argument('-t','--top', type=int, 
+    help='show top clipped coupons')
 parser.add_argument('-m','--multiply', type=float, default=1, 
     help='time delay multiplier in seconds for loading between web pages, default is 1, to double is 2, .25 is a quarter of the speed, etc.')
+parser.add_argument('-d','--delay', type=float, default=0, 
+    help='delay for clipping coupons, an attempt to make sure all coupons are clipped before moving on to next account')
 parser.add_argument('-i','--input', default='coupons.txt',type=str,
     help='use this input file of accounts instead of the default coupons.txt')
 parser.add_argument('-c','--chrome', default="/home/metulburr/chromedriver",type=str,
@@ -55,6 +63,9 @@ SKIP = args['skip']
 SEARCH = args['find']
 SEP = '-'*25
 AVAIL = args['available']
+TOP = args['top']
+USED = args['used']
+DELAY = args['delay']
     
 def print_color(msg, color):
     '''print in color in terminal'''
@@ -194,6 +205,20 @@ def execute():
             for coupon in coupons:
                 print(coupon.text)
                 print(SEP)
+        elif TOP:#show top X coupons, used for showing lastest clipped
+            browser.get('https://dg.coupons.com/myCoupons/')
+            time.sleep(1 * MULT) 
+            coupons = browser.find_elements_by_xpath('.//div[@class="pod ci-grid activated desktop "]')
+            coupons = coupons[:TOP]
+            for coupon in coupons:
+                print(coupon.text)
+                print(SEP)
+        elif USED:#show used coupons
+            browser.get('https://dg.coupons.com/myCoupons/')
+            coupons = browser.find_elements_by_xpath('.//div[@class="pod ci-grid redeemed desktop "]')
+            for coupon in coupons:
+                print(coupon.text)
+                print(SEP)
         else: #clip all coupons
             #goes to dashboard page after login https://dg.coupons.com/dashboard/
             no_coupons_available = print_coupon_info(browser)
@@ -210,6 +235,8 @@ def execute():
 
             count = make_all_btns_visable(browser)
             clip_all_btns(browser, count, username)
+            if DELAY:
+                time.sleep(DELAY * MULT)
             print_coupon_info(browser)
             print(SEP)
             browser.quit()
@@ -222,6 +249,9 @@ def get_time():
     t = divmod(elapsed_time.total_seconds(), 60)
     m,s = (int(t[0]), int(t[1]))
     return 'Took {} minutes and {} seconds'.format(m,s)
+    
+def format_time(datetime_now):
+    return datetime_now.strftime("%b-%d-%Y %I:%M %p")
 
 
 if __name__ == '__main__':
@@ -243,6 +273,8 @@ if __name__ == '__main__':
         sys.exit()
     print('Done!')
     print(get_time())
+    print('Started at {}'.format(format_time(START)))
+    print('Completed at {}'.format(format_time(datetime.datetime.now())))
 
 
 
