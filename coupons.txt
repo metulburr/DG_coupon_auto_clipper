@@ -1,5 +1,5 @@
-my_bogus_email@yandex.com|my_password
-my_bogus_email2@yandex.com|my_password
+my_bogus_email@yandex.com|my_password|Phone Number Optional
+my_bogus_email2@yandex.com|my_password|Phone Number Optional
 my_bogus_email3@yandex.com|my_password
 my_bogus_email4@yandex.com|my_password
 #my_bogus_email5@yandex.com|my_password will not run this email due to #

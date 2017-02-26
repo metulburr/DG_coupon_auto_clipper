@@ -16,16 +16,16 @@ https://chromedriver.storage.googleapis.com/index.html
 PhantomJS: This is a headless version doing it in the background instead, the driver is at
 http://phantomjs.org/download.html
 
-~~
-4-A)The source code needs to be changed to accomodate changes:
+~~4-A)The source code needs to be changed to accomodate changes:
 Change the path to the path on your computer where you chrome webdriver resides
 https://github.com/metulburr/DG_coupon_auto_clipper/blob/master/coupons.py#L13
-same with phantomjs below that to the proper path to that webdriver if using headless
-~~
+same with phantomjs below that to the proper path to that webdriver if using headless~~
+UPDATE:
 Now just give the argument -c {PATH} for chrome and -p {PATH} for phantom
 
-4-B)The list of accounts needs to be changed to your true DG accounts|passwords shown in the format of this example in that name. The file needs to reside in the same directory as the source code, with that filename. 
-https://github.com/metulburr/DG_coupon_auto_clipper/blob/master/coupons.txt
+4-B)The list of accounts needs to be changed to your true DG accounts|passwords shown in the format of this example in that name. The file needs to reside in the same directory as the source code, ~~with that filename. https://github.com/metulburr/DG_coupon_auto_clipper/blob/master/coupons.txt~~
+UPDATE:
+Now just give the argument -i {INPUT} for a new filename
 
 5) execution:
 open a command prompt/terminal and execute
@@ -65,9 +65,18 @@ ignored starting with # email5@yandex.com|my_password
 optional arguments:
   -h, --help            show this help message and exit
   -b, --headless        Run in headless mode (in the background)
+  -a, --available       show available coupons not clipped, no clipping during
+                        process
+  -u, --used            show used coupons
+  -t TOP, --top TOP     show top clipped coupons
   -m MULTIPLY, --multiply MULTIPLY
                         time delay multiplier in seconds for loading between
-                        web pages, default is 1, to double is 2, etc.
+                        web pages, default is 1, to double is 2, .25 is a
+                        quarter of the speed, etc.
+  -d DELAY, --delay DELAY
+                        delay for clipping coupons, an attempt to make sure
+                        all coupons are clipped before moving on to next
+                        account
   -i INPUT, --input INPUT
                         use this input file of accounts instead of the default
                         coupons.txt
@@ -80,6 +89,7 @@ optional arguments:
   -f [FIND [FIND ...]], --find [FIND [FIND ...]]
                         search for coupon(s) if used or clipped. FIND can be
                         any number of keywords to make hits
+
 
 ```
 
