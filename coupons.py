@@ -9,6 +9,7 @@ import os
 import sys
 import argparse
 import datetime
+import codecs
 START = datetime.datetime.now()
 
 HELP = '''
@@ -29,6 +30,8 @@ parser.add_argument('-a','--available', action='store_true', default=False,
     help='show available coupons not clipped, no clipping during process')
 parser.add_argument('-u','--used', action='store_true', default=False,
     help='show used coupons')
+parser.add_argument('-o','--output', default=None, 
+    help='output to file')
 parser.add_argument('-t','--top', type=int, 
     help='show top clipped coupons')
 parser.add_argument('-m','--multiply', type=float, default=1, 
@@ -66,6 +69,11 @@ AVAIL = args['available']
 TOP = args['top']
 USED = args['used']
 DELAY = args['delay']
+OUTPUT = args ['output']
+
+if OUTPUT:
+    sys.stdout = codecs.open(OUTPUT,'w',encoding='utf8')
+    
     
 def print_color(msg, color):
     '''print in color in terminal'''
