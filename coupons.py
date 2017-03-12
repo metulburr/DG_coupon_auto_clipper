@@ -1,7 +1,7 @@
 #!/usr/bin/python env
 
 #http://selenium-python.readthedocs.io/locating-elements.html
-
+from __future__ import print_function
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 import time
@@ -60,6 +60,7 @@ PHANTOMPATH = args['phantom'] #headless driver
 MULT = args['multiply'] #delay multiplier in seconds
 RED='\033[0;31m'
 GREEN='\033[1;32m'
+INVERT='\033[1;3m'
 NOCOLOR='\033[0m'
 HEADLESS = args['headless'] #do in background
 SKIP = args['skip']
@@ -182,10 +183,7 @@ def print_coupon_info(browser):
         pass
 
 def execute():
-    if SEARCH:
-        print_color('logging into {}'.format(username), GREEN)
-    else:
-        print('logging into {}'.format(username))
+    print_color('logging into {}'.format(username), INVERT)
     try:
         if HEADLESS:
             browser = setup_headless()
@@ -277,7 +275,9 @@ if __name__ == '__main__':
                 password = password.rstrip()
                 execute()
     except KeyboardInterrupt:
-        print()
+        sys.stdout.write("\r") #just remove the ^C for (cntrl + c)
+        sys.stdout.flush()
+        print_color('Program Aborted at {}'.format(format_time(datetime.datetime.now())), RED)
         sys.exit()
     print('Done!')
     print(get_time())
